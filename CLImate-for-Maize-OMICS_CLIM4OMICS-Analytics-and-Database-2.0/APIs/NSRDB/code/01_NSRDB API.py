@@ -196,34 +196,38 @@ for index, row in dF.iterrows():
             mailing_list = mailinglist
         else:
             mailing_list = args.mail
-    # Declare url string
-    url = 'https://developer.nrel.gov/api/solar/nsrdb_psm3_download.csv?wkt=POINT({lon}%20{lat})&names={year}&leap_day={leap}&interval={interval}&utc={utc}&full_name={name}&email={email}&affiliation={affiliation}&mailing_list={mailing_list}&reason={reason}&api_key={api}&attributes={attr}'.format(
-        year=year, lat=lat, lon=lon, leap=leap_year, interval=interval, utc=utc, name=your_name, email=your_email,
-        mailing_list=mailing_list, affiliation=your_affiliation, reason=reason_for_use, api=api_key, attr=attributes)
+    # Declare url string (updated url for most recent model with updated parameters)
+    url = ('https://developer.nrel.gov/api/nsrdb/v2/solar/psm3-2-2-download.csv?api_key={api_key}&email={'
+           'email}&wkt=POINT({lon}%20{lat})&names={names}&leap_day={leap}&interval={interval}&utc={utc}&attributes={'
+           'attr}').format(api_key=api_key, email=your_email, lon=lon, lat=lat, names=year, leap=leap_year,
+                           interval=interval, utc=utc, attr=attributes)
+
+    #url = 'https://developer.nrel.gov/api/solar/nsrdb_psm3_download.csv?wkt=POINT({lon}%20{lat})&names={
+    # year}&leap_day={leap}&interval={interval}&utc={utc}&full_name={name}&email={email}&affiliation={affiliation}&mailing_list={mailing_list}&reason={reason}&api_key={api}&attributes={attr}'.format(
+    #    year=year, lat=lat, lon=lon, leap=leap_year, interval=interval, utc=utc, name=your_name, email=your_email,
+    #    mailing_list=mailing_list, affiliation=your_affiliation, reason=reason_for_use, api=api_key, attr=attributes)
     # Return all but first 2 lines of csv to get data:
-    df = pd.read_csv(
-        'https://developer.nrel.gov/api/solar/nsrdb_psm3_download.csv?wkt=POINT({lon}%20{lat})&names={year}&leap_day={leap}&interval={interval}&utc={utc}&full_name={name}&email={email}&affiliation={affiliation}&mailing_list={mailing_list}&reason={reason}&api_key={api}&attributes={attr}'.format(
-            year=year, lat=lat, lon=lon, leap=leap_year, interval=interval, utc=utc, name=your_name, email=your_email,
-            mailing_list=mailing_list, affiliation=your_affiliation, reason=reason_for_use, api=api_key,
-            attr=attributes), skiprows=2)
-    # Check
-    # print("D1")
+    df = pd.read_csv(url, skiprows=2)
 
     df.index.name = "Record Number"
-    df["Date"] = df["Year"].apply(str) + "/" + df["Month"].apply(str) + "/" + df["Day"].apply(str)
-    df["DOY"] = 1
-    # Check
-    #    print("D2")
 
-    for i in range(1, len(df)):
-        #        print("D"+ str(i))
-        # print(i)
-        if df.Date.loc[i] == df.Date.loc[i - 1]:
-            # print(df.Date.loc[i])
-            df["DOY"].loc[i] = df["DOY"].loc[i - 1]
-        elif df.Date.loc[i] != df.Date.loc[i - 1]:
-            df["DOY"].loc[i] = df["DOY"].loc[i - 1] + 1
-    #    print(df)
+    # new code to set df["Date"] as datetime object
+    df["Date"] = pd.to_datetime(df[["Year", "Month", "Day"]])
+    df["DOY"] = df["Date"].dt.dayofyear
+
+    # old code
+    # df["Date"] = df["Year"].apply(str) + "/" + df["Month"].apply(str) + "/" + df["Day"].apply(str)
+    #df["DOY"] = 1
+
+    # for i in range(1, len(df)):
+    #     #        print("D"+ str(i))
+    #     # print(i)
+    #     if df.Date.loc[i] == df.Date.loc[i - 1]:
+    #         # print(df.Date.loc[i])
+    #         df["DOY"].loc[i] = df["DOY"].loc[i - 1]
+    #     elif df.Date.loc[i] != df.Date.loc[i - 1]:
+    #         df["DOY"].loc[i] = df["DOY"].loc[i - 1] + 1
+    # #    print(df)
 
     # Set the time index in the pandas dataframe:
     # df = df.set_index(pd.date_range('1/1/{yr}'.format(yr=year), freq=interval+'Min', periods=525600/int(interval)))

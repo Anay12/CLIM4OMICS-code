@@ -7,6 +7,10 @@ Created on Fri Jan 24 10:52:16 2020
 Updated on May 2023
 """
 
+"""
+On line 95, comment out one next(infile)
+"""
+
 ## Reading and cleaning DayMet data
 # =============================================================================
 # Import necessary libraries
@@ -92,9 +96,17 @@ for filename in CSV_files:
             next (in_file)  
             next (in_file)
             next (in_file)
-            next (in_file)
+            #next (in_file)
 
+            # headers were being skipped, so I removed (commented out) one next(in_file) line
+            # headers were then appearing, but in the first row of the csv
+
+            # read the headers in separately
+            headers = next(in_file).strip().split(',')
             writer = csv.writer(out_file)
+            # write the headers to the csv
+            writer.writerow(headers)
+
             for row in csv.reader(in_file):
                 if any (row):
                     writer.writerow(row)
@@ -103,7 +115,7 @@ DayMet_files = glob.glob(os.path.abspath(os.path.join(Output_dir,'*.csv')))
 for filename in DayMet_files:
     Filename = os.path.basename(filename)[:-4].upper() + ".csv"
     df = pd.read_csv(os.path.join(Output_dir, Filename))
-    
+
     df["Temperature [C]"] = df[["tmin (deg c)", "tmax (deg c)"]].mean(axis = 1)
     df["Pressure [mb]"] = df["vp (Pa)"]*0.01
        
