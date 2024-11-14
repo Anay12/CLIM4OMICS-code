@@ -16,6 +16,8 @@ import sys
 import glob
 import argparse
 import pandas as pd
+import requests
+from io import StringIO
 
 ##############################################################################
 ##############################################################################
@@ -201,54 +203,67 @@ for index, row in dF.iterrows():
            'email}&wkt=POINT({lon}%20{lat})&names={names}&leap_day={leap}&interval={interval}&utc={utc}&attributes={'
            'attr}').format(api_key=api_key, email=your_email, lon=lon, lat=lat, names=year, leap=leap_year,
                            interval=interval, utc=utc, attr=attributes)
-
+    # old url
     #url = 'https://developer.nrel.gov/api/solar/nsrdb_psm3_download.csv?wkt=POINT({lon}%20{lat})&names={
     # year}&leap_day={leap}&interval={interval}&utc={utc}&full_name={name}&email={email}&affiliation={affiliation}&mailing_list={mailing_list}&reason={reason}&api_key={api}&attributes={attr}'.format(
     #    year=year, lat=lat, lon=lon, leap=leap_year, interval=interval, utc=utc, name=your_name, email=your_email,
     #    mailing_list=mailing_list, affiliation=your_affiliation, reason=reason_for_use, api=api_key, attr=attributes)
-    # Return all but first 2 lines of csv to get data:
-    df = pd.read_csv(url, skiprows=2)
 
-    df.index.name = "Record Number"
+    # pd.read_csv was not working, use requests to check the response from the url first
+    response = requests.get(url)
 
-    # new code to set df["Date"] as datetime object
-    df["Date"] = pd.to_datetime(df[["Year", "Month", "Day"]])
-    df["DOY"] = df["Date"].dt.dayofyear
+    if response.ok:
+        data = StringIO(response.text)
+        df = pd.read_csv(data, skiprows=2)
 
-    # old code
-    # df["Date"] = df["Year"].apply(str) + "/" + df["Month"].apply(str) + "/" + df["Day"].apply(str)
-    #df["DOY"] = 1
+        df.index.name = "Record Number"
 
-    # for i in range(1, len(df)):
-    #     #        print("D"+ str(i))
-    #     # print(i)
-    #     if df.Date.loc[i] == df.Date.loc[i - 1]:
-    #         # print(df.Date.loc[i])
-    #         df["DOY"].loc[i] = df["DOY"].loc[i - 1]
-    #     elif df.Date.loc[i] != df.Date.loc[i - 1]:
-    #         df["DOY"].loc[i] = df["DOY"].loc[i - 1] + 1
-    # #    print(df)
+        # new code to set df["Date"] as datetime object
+        df["Date"] = pd.to_datetime(df[["Year", "Month", "Day"]])
+        df["DOY"] = df["Date"].dt.dayofyear
 
-    # Set the time index in the pandas dataframe:
-    # df = df.set_index(pd.date_range('1/1/{yr}'.format(yr=year), freq=interval+'Min', periods=525600/int(interval)))
+        # old code
+        # df["Date"] = df["Year"].apply(str) + "/" + df["Month"].apply(str) + "/" + df["Day"].apply(str)
+        #df["DOY"] = 1
 
-    # take a look
-    count_file += 1
-    #    print ("count_file = ", count_file)
-    #    print ("year =", year)
-    #    print ("Experiment =", experiment)
-    #    print ('shape:',df.shape)
+        # for i in range(1, len(df)):
+        #     #        print("D"+ str(i))
+        #     # print(i)
+        #     if df.Date.loc[i] == df.Date.loc[i - 1]:
+        #         # print(df.Date.loc[i])
+        #         df["DOY"].loc[i] = df["DOY"].loc[i - 1]
+        #     elif df.Date.loc[i] != df.Date.loc[i - 1]:
+        #         df["DOY"].loc[i] = df["DOY"].loc[i - 1] + 1
+        # #    print(df)
 
-    # Saving the downloaded files
-    df = df[["Year", "Month", "Day", "Hour", "Minute", "Date", "DOY", "Temperature", "Dew Point", "Relative Humidity",
-             "GHI", "DHI", "DNI",
-             "Precipitable Water", "Wind Speed", "Wind Direction", "Pressure"]]
+        # Set the time index in the pandas dataframe:
+        # df = df.set_index(pd.date_range('1/1/{yr}'.format(yr=year), freq=interval+'Min', periods=525600/int(interval)))
 
-    df.rename(columns={"Year": "Year [Local]", "Month": "Month [Local]", "Day": "Day [Local]", "Hour": "Hour [Local]",
-                       "Minute": "Minute [Local]", "Date": "Date [Local]",
-                       "DOY": "Day of Year [Local]", "Temperature": "Temperature [C]", "Dew Point": "Dew Point [C]",
-                       "Relative Humidity": "Relative Humidity [%]",
-                       "GHI": "Solar Radiation [W/m2]", "DHI": "DHI [W/m2]", "DNI": "DNI [W/m2]",
-                       "Wind Speed": "Wind Speed [m/s]", "Wind Direction": "Wind Direction [degrees]",
-                       "Precipitable Water": "Precipitable Water [mm]", "Pressure": "Pressure [mb]"}, inplace=True)
-    df.to_csv(os.path.join(Output_dir, year + str(experiment) + ".csv"))
+        # take a look
+        count_file += 1
+        #    print ("count_file = ", count_file)
+        #    print ("year =", year)
+        #    print ("Experiment =", experiment)
+        #    print ('shape:',df.shape)
+
+        # Saving the downloaded files
+        df = df[["Year", "Month", "Day", "Hour", "Minute", "Date", "DOY", "Temperature", "Dew Point", "Relative Humidity",
+                 "GHI", "DHI", "DNI",
+                 "Precipitable Water", "Wind Speed", "Wind Direction", "Pressure"]]
+
+        df.rename(columns={"Year": "Year [Local]", "Month": "Month [Local]", "Day": "Day [Local]", "Hour": "Hour [Local]",
+                           "Minute": "Minute [Local]", "Date": "Date [Local]",
+                           "DOY": "Day of Year [Local]", "Temperature": "Temperature [C]", "Dew Point": "Dew Point [C]",
+                           "Relative Humidity": "Relative Humidity [%]",
+                           "GHI": "Solar Radiation [W/m2]", "DHI": "DHI [W/m2]", "DNI": "DNI [W/m2]",
+                           "Wind Speed": "Wind Speed [m/s]", "Wind Direction": "Wind Direction [degrees]",
+                           "Precipitable Water": "Precipitable Water [mm]", "Pressure": "Pressure [mb]"}, inplace=True)
+        df.to_csv(os.path.join(Output_dir, year + str(experiment) + ".csv"))
+
+    else:
+        print("Error with API request: ", response.status_code)
+        print(response.text)
+
+        if "No data available at the provided location" in response.text:
+            print("No data available for this file. Skipping...")
+
