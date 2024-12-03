@@ -112,7 +112,7 @@ for filename in CSV_files:
 
 NWS_files = glob.glob(os.path.abspath(os.path.join(Output_dir,'*.csv')))
 for filename in NWS_files:
-    df = pd.read_csv (filename)
+    df = pd.read_csv(filename)
     df = df[["station", "valid", "lat", "lon", "tmpf", "dwpf", "relh", "drct", "sknt", "p01i", "alti"]] 
     df.rename (columns = {"valid":"Date", "tmpf":"Temperature [F]", "dwpf":"Dew Point [F]", "relh":"Relative Humidity [%]", 
                           "p01i":"Rainfall [in]", "sknt":"Wind Speed [knot]", "drct":"Wind Direction [degrees]", "alti":"Pressure [in]"}, inplace = True) 
