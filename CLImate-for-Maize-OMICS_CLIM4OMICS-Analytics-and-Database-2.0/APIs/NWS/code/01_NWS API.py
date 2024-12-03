@@ -21,6 +21,7 @@ import time
 import datetime
 import pandas as pd
 from urllib.request import urlopen
+import logging
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--input', help='Path of Input Directory from Current Path', required=False)
@@ -86,8 +87,11 @@ print ("Output directory ", Output_dir)
 MAX_ATTEMPTS = 6
 # HTTPS here can be problematic for installs that don't have Lets Encrypt CA
 SERVICE = "http://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?"
-#
-#
+
+# use logging to see what the code is doing and where it got stuck
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
 def download_data(uri):
     """Fetch the data from the IEM
     The IEM download service has some protections in place to keep the number
@@ -101,14 +105,17 @@ def download_data(uri):
     attempt = 0
     while attempt < MAX_ATTEMPTS:
         try:
+            logging.info(f"Attempting to download: {uri}")
             data = urlopen(uri, timeout=300).read().decode('utf-8')
             if data is not None and not data.startswith('ERROR'):
                 return data
         except Exception as exp:
+            logging.warning(f"Attempt {attempt + 1} failed: {exp}")
             print("download_data(%s) failed with %s" % (uri, exp))
             time.sleep(5)
         attempt += 1
 
+    logging.error(f"Exhausted attempts for {uri}")
     print("Exhausted attempts to download, returning empty data")
     return ""
 
@@ -118,8 +125,12 @@ def get_stations_from_filelist(filename):
     The file should simply have one station per line.
     """
     stations = []
-    for line in open(filename):
-        stations.append(line.strip())
+    try:
+        for line in open(filename):
+            stations.append(line.strip())
+    except FileNotFoundError:
+        logging.error(f"Station file not found found: {filename}")
+
     return stations
 
 
@@ -138,10 +149,13 @@ def get_stations_from_networks():
         # Get metadata
         uri = ("https://mesonet.agron.iastate.edu/"
                "geojson/network/%s.geojson") % (network,)
-        data = urlopen(uri)
-        jdict = json.load(data)
-        for site in jdict['features']:
-            stations.append(site['properties']['sid'])
+        try:
+            data = urlopen(uri)
+            jdict = json.load(data)
+            for site in jdict['features']:
+                stations.append(site['properties']['sid'])
+        except Exception as e:
+            logging.warning(f"Failed to fetch data for network {network}: {e}")
     return stations
 
 
@@ -150,7 +164,8 @@ def main():
     if args.startyear is None:
         year = 2014
     else:
-        year = args.startyear
+        # make this parameter into an int
+        year = int(args.startyear)
     if args.endyear is None:
         eyear = datetime.datetime.now().year
     else:
@@ -183,7 +198,7 @@ def main():
                 writer = csv.writer(out_file)
                 writer.writerows(lines)
 #                print("Save")
-        
+            logging.info(f"Saved data for station {station} to {outfn}")
 
 if __name__ == '__main__':
     main()
