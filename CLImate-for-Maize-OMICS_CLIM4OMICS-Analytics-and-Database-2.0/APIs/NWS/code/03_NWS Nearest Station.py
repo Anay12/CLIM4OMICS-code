@@ -84,35 +84,35 @@ if args.nearmetafile is not None:
             latlonfile = os.path.join(latlonpath, "NWS_lat_lon.csv")
     else:
         print(f"The provided path {args.nearmetafile} does not exists. Absolute path based on provided path is {latlonpath}")
-elif os.path.exists(Input_dir):
-    if os.path.isfile(os.path.join(pathlib.Path(Input_dir).parent, "NWS_lat_lon.csv")):
-        latlonfile = os.path.join(pathlib.Path(Input_dir).parent, "NWS_lat_lon.csv")
-    elif os.path.isfile(os.path.join(pathlib.Path(Input_dir).parent.parent, "code/NWS_lat_lon.csv")):
-        latlonfile = os.path.join(pathlib.Path(Input_dir).parent.parent, "code/NWS_lat_lon.csv")
-    elif os.path.isfile(os.path.join(pathlib.Path(Input_dir).parent.parent, "NWS_lat_lon.csv")):
-        latlonfile = os.path.join(pathlib.Path(Input_dir).parent.parent, "NWS_lat_lon.csv")
-    elif os.path.isfile(os.path.join(pathlib.Path(Input_dir).parent.parent.parent, "NWS_lat_lon.csv")):
-        latlonfile = os.path.join(pathlib.Path(Input_dir).parent.parent.parent, "NWS_lat_lon.csv")
+elif os.path.exists(Input_path):
+    if os.path.isfile(os.path.join(pathlib.Path(Input_path).parent, "NWS_lat_lon.csv")):
+        latlonfile = os.path.join(pathlib.Path(Input_path).parent, "NWS_lat_lon.csv")
+    elif os.path.isfile(os.path.join(pathlib.Path(Input_path).parent.parent, "code/NWS_lat_lon.csv")):
+        latlonfile = os.path.join(pathlib.Path(Input_path).parent.parent, "code/NWS_lat_lon.csv")
+    elif os.path.isfile(os.path.join(pathlib.Path(Input_path).parent.parent, "NWS_lat_lon.csv")):
+        latlonfile = os.path.join(pathlib.Path(Input_path).parent.parent, "NWS_lat_lon.csv")
+    elif os.path.isfile(os.path.join(pathlib.Path(Input_path).parent.parent.parent, "NWS_lat_lon.csv")):
+        latlonfile = os.path.join(pathlib.Path(Input_path).parent.parent.parent, "NWS_lat_lon.csv")
     elif os.path.isfile(os.path.join(os.getcwd(), "NWS_lat_lon.csv")):
         latlonfile = os.path.join(os.getcwd(), "NWS_lat_lon.csv")
-    elif os.path.isfile(os.path.join(os.getcwd().parent, "output/NWS_lat_lon.csv")):
-        latlonfile = os.path.join(os.getcwd().parent, "output/NWS_lat_lon.csv")
+    elif os.path.isfile(os.path.join(os.getcwd(), "output/NWS_lat_lon.csv")):
+        latlonfile = os.path.join(os.getcwd(), "output/NWS_lat_lon.csv")
     else:
-        print(f"The Meta file (lat lon) does not exists, use -m flag to provide location of file")
+        print(f"The NWS Meta file (lat lon) does not exists, use -m flag to provide location of file")
 else:
     if os.path.isfile(os.path.join(os.getcwd(), "NWS_lat_lon.csv")):
         latlonfile = os.path.join(os.getcwd(), "NWS_lat_lon.csv")
-    elif os.path.isfile(os.path.join(os.getcwd().parent, "output/NWS_lat_lon.csv")):
-        latlonfile = os.path.join(os.getcwd().parent, "output/NWS_lat_lon.csv")
+    elif os.path.isfile(os.path.join(os.getcwd(), "output/NWS_lat_lon.csv")):
+        latlonfile = os.path.join(os.getcwd(), "output/NWS_lat_lon.csv")
     else:
-        print(f"The Meta file (lat lon) does not exists, use -m flag to provide location of file")
+        print(f"The NWS Meta file (lat lon) does not exists, use -m flag to provide location of file")
 if args.meta is not None:
     Input_path2 = os.path.abspath(args.meta)
     if os.path.exists(Input_path2):
         Input_dir2 = Input_path2
     else:
         print(
-            f'The input directory {args.meta} does not exists on system path. Correct the Input directory, provided directory has {Input_path1} path')
+            f'The input directory {args.meta} does not exists on system path. Correct the Input directory, provided directory has {Input_path} path')
 
 elif os.path.exists("../../../G2F data preprocessing/Meta/output"):
     Input_dir2 = "../../../G2F data preprocessing/Meta/output"
@@ -126,7 +126,8 @@ elif os.path.exists("../../G2F data preprocessing/Meta/output"):
     Input_dir2 = "../../G2F data preprocessing/Meta/output"
 else:
     print(
-        "No input directory is provided in arguments and directory is not exits on possible locations. Provide the directory in arguments or create directories based on instructions")
+        "No Meta file input directory is provided in arguments. "
+        "Provide the directory in arguments or create directories based on instructions")
     sys.exit()
 print("Input directory = ", Input_dir)
 print ("Output directory ", Output_dir)
